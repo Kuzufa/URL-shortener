@@ -4,6 +4,9 @@ import (
 	"log/slog"
 	"os"
 	"url-shortner/internal/config"
+	"url-shortner/internal/lib/logger/sl"
+	_ "url-shortner/internal/storage"
+	"url-shortner/internal/storage/sqllite"
 )
 
 const (
@@ -20,6 +23,26 @@ func main() {
 
 	log.Info("starting url-shortener", slog.String("env", cfg.Env))
 	log.Debug("debug messege enebled")
+
+	storage, err := sqllite.New(cfg.StoragePath)
+	if err != nil {
+		log.Error("failed to init storage", sl.Err(err))
+		os.Exit(1)
+	}
+
+	id, err := storage.SaveURL("https://google.com", "google")
+	if err != nil {
+		log.Error("failed to save url", sl.Err(err))
+		os.Exit(1)
+	}
+	log.Info("saved url", slog.Int64("id", id))
+
+	id, err = storage.SaveURL("https://google.com", "google")
+	if err != nil {
+		log.Error("failed to save url", sl.Err(err))
+		os.Exit(1)
+	}
+	_ = storage
 
 }
 
